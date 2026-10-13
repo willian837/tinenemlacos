@@ -5,6 +5,13 @@ function linkPedido(msg) {
   return WHATSAPP ? "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(msg) : INSTAGRAM;
 }
 
+function precoTexto(p) {
+  return typeof p.preco === "number"
+    ? p.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    : "Consulte";
+}
+function rotulo(p) { return p.nome + " (" + p.tam + ")"; }
+
 const grade = document.getElementById("grade");
 grade.innerHTML = produtos.map((p, i) => `
   <article class="cartela" data-index="${i}" data-cat="${p.cat.join(" ")}${p.nomeBordado ? " nome" : ""}">
@@ -19,10 +26,10 @@ grade.innerHTML = produtos.map((p, i) => `
     <div class="info">
       <span class="tipo">${p.nomeBordado ? "Com nome bordado" : (p.cat.includes("kit") ? "Dupla / kit" : p.cat.includes("faixa") ? "Faixa / tiara" : "Laço")}</span>
       <h3>${p.nome}</h3>
+      <p class="preco">${precoTexto(p)}</p>
       <p class="desc">${p.desc}</p>
     </div>
-    <a class="btn btn-borda pedir js-whats" href="#" target="_blank" rel="noopener"
-       data-msg="Olá, Irlem! Vi o ${p.nome} (${p.tam}) no catálogo e quero saber valor e prazo.">Quero esse</a>
+    <button type="button" class="btn btn-borda pedir" data-index="${i}">Quero esse</button>
   </article>`).join("");
 
 document.querySelectorAll(".filtros button").forEach(b => b.addEventListener("click", () => {
@@ -36,13 +43,16 @@ const nomeEl = document.getElementById("nome"), modeloEl = document.getElementBy
 const acabamentoEl = document.getElementById("acabamento"), corEl = document.getElementById("cor");
 const ocasiaoEl = document.getElementById("ocasiao"), obsEl = document.getElementById("obs");
 const btnPedir = document.getElementById("pedir-personalizado");
-const modelos = [...new Set(produtos.map(p => p.nome))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-modeloEl.innerHTML = ["Ainda não sei, quero ajuda", ...modelos].map(m => `<option>${m}</option>`).join("");
+/* lista de modelos: cada produto com tamanho e valor, em ordem alfabética */
+const ordem = produtos.map((p, i) => i).sort((a, b) => rotulo(produtos[a]).localeCompare(rotulo(produtos[b]), "pt-BR"));
+modeloEl.innerHTML = '<option value="">Ainda não sei, quero ajuda</option>' +
+  ordem.map(i => `<option value="${i}">${rotulo(produtos[i])} · ${precoTexto(produtos[i])}</option>`).join("");
 
 function montarPedido() {
+  const p = modeloEl.value === "" ? null : produtos[Number(modeloEl.value)];
   const linhas = [
     "Olá, Irlem! Quero encomendar um laço:",
-    "• Modelo: " + modeloEl.value,
+    "• Modelo: " + (p ? rotulo(p) + " · " + precoTexto(p) : "Ainda não sei, quero ajuda"),
     "• Acabamento: " + acabamentoEl.value,
     "• Cor: " + corEl.value
   ];
@@ -51,7 +61,7 @@ function montarPedido() {
   }
   if (nomeEl.value.trim()) linhas.push("• Nome bordado: " + nomeEl.value.trim());
   if (obsEl.value.trim()) linhas.push("• Detalhes: " + obsEl.value.trim());
-  linhas.push("Pode me passar o valor?");
+  linhas.push(p && typeof p.preco === "number" ? "Pode confirmar o pedido e o prazo?" : "Pode me passar o valor?");
   const msg = linhas.join("\n");
   btnPedir.dataset.msg = msg;
   btnPedir.href = linkPedido(msg);
@@ -81,6 +91,26 @@ document.querySelectorAll(".chips-ocasiao button").forEach(btn => {
 
 document.getElementById("form-laco").addEventListener("submit", e => e.preventDefault());
 
+/* "Quero esse": leva ao formulário com o modelo já escolhido */
+const formEl = document.getElementById("form-laco");
+const OPC_ACABAMENTO = { faixa: 0, tiara: 2, ajuda: 3 }; // posições na lista "Acabamento"
+const semAnimacao = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function escolherModelo(idx) {
+  const p = produtos[idx];
+  modeloEl.value = String(idx);
+  acabamentoEl.selectedIndex = p.nome.startsWith("Tiara") ? OPC_ACABAMENTO.tiara
+    : p.cat.includes("faixa") ? OPC_ACABAMENTO.faixa
+    : OPC_ACABAMENTO.ajuda;
+  montarPedido();
+  document.getElementById("personalize").scrollIntoView({ behavior: semAnimacao ? "auto" : "smooth", block: "start" });
+  nomeEl.focus({ preventScroll: true });
+  formEl.classList.remove("destaque");
+  void formEl.offsetWidth; // reinicia a animação se tocar em outro produto
+  formEl.classList.add("destaque");
+}
+grade.querySelectorAll(".pedir").forEach(btn => btn.addEventListener("click", () => escolherModelo(Number(btn.dataset.index))));
+
 /* links de pedido */
 document.querySelectorAll(".js-whats").forEach(a => {
   a.href = linkPedido(a.dataset.msg || "");
@@ -89,6 +119,16 @@ document.querySelectorAll(".js-whats").forEach(a => {
 document.getElementById("whats-texto").textContent = WHATSAPP
   ? "WhatsApp: +" + WHATSAPP.replace(/^(\d{2})(\d{2})(\d{5})(\d{4})$/, "$1 ($2) $3-$4")
   : "Pedidos pelo direct do Instagram";
+
+/* menor preço do catálogo, na etiqueta "Valores" */
+const comPreco = produtos.filter(p => typeof p.preco === "number");
+if (comPreco.length) {
+  const menor = Math.min(...comPreco.map(p => p.preco));
+  document.getElementById("preco-minimo").textContent = "A partir de " + precoTexto({ preco: menor }).replace(",00", "");
+}
+
+/* ano do rodapé: atualiza sozinho a cada ano */
+document.getElementById("ano").textContent = new Date().getFullYear();
 
 montarPedido();
 
@@ -105,9 +145,9 @@ function abrirZoom(idx) {
   if (!p || !lightbox) return;
   lbImg.src = "img/produtos/" + p.img;
   lbImg.alt = p.nome + " " + p.tam + ": " + p.desc;
-  lbTitulo.textContent = p.nome + " (" + p.tam + ")";
+  lbTitulo.textContent = rotulo(p) + " · " + precoTexto(p);
   lbDesc.textContent = p.desc;
-  const msg = "Olá, Irlem! Vi os detalhes do " + p.nome + " (" + p.tam + ") no catálogo e quero saber como encomendar.";
+  const msg = "Olá, Irlem! Vi o " + rotulo(p) + " · " + precoTexto(p) + " no catálogo e quero encomendar.";
   lbBtn.dataset.msg = msg;
   lbBtn.href = linkPedido(msg);
   if (typeof lightbox.showModal === "function") {

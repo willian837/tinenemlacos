@@ -1,18 +1,20 @@
-# Tineném Laços
+# Tineném Laços & Acessórios
 
-Landing page da **Tineném Laços**, ateliê de laços de tecido bordados à mão em Castanhal-PA.
+Landing page da **Tineném Laços & Acessórios**, ateliê de laços de tecido bordados à mão em Castanhal-PA.
 A página apresenta o catálogo e leva a cliente direto para o WhatsApp com o pedido já escrito.
 
 **Site no ar:** https://willian837.github.io/tinenemlacos/
 
-![Página inicial da Tineném Laços](.github/preview.jpg)
+![Página inicial da Tineném Laços & Acessórios](.github/preview.jpg)
 
 ## Funcionalidades
 
 - **Catálogo** com 12 modelos, filtros (laços, duplas e kits, faixas e tiaras, com nome bordado) e botão "Quero esse" em cada produto
-- **Monte seu pedido:** formulário com nome, modelo, cor e detalhes que abre o WhatsApp com a mensagem organizada
+- **Zoom nas fotos:** toque na foto para ver o bordado em detalhe, com botão de pedido
+- **Monte seu pedido:** formulário com nome, modelo, acabamento, cor, ocasião e detalhes que abre o WhatsApp com a mensagem organizada
 - **Depoimentos** de clientes em formato de conversa, sem dados pessoais
 - **Prazo, entrega e pagamento** em destaque
+- **Perguntas frequentes:** idade, bebês com pouco cabelo, entrega e cuidados com os laços
 - Layout para celular e computador, com botão fixo de pedido no celular
 - Favicon e ícones de app feitos a partir da logo; fotos otimizadas em WebP
 
