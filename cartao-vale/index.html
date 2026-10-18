@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cartão do Vale-Presente · Tineném</title>
+  <!-- ferramenta interna da Irlem: não aparece no Google e não tem link no site -->
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="../favicon.ico" sizes="any">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;600;700&family=Dancing+Script:wght@700&display=swap">
+  <style>
+    :root {
+      --noite: #1C2A33; --neve: #F4F1EC; --azevinho: #B8323F; --luz: #F2C66D;
+      --tinta: #3E2836; --suave: #76606D; --linha: #E2D8D2;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--noite); color: var(--neve); font: 400 16px/1.5 "Figtree", system-ui, sans-serif; }
+    .pagina { max-width: 1040px; margin-inline: auto; padding: 24px 16px 48px; display: grid; gap: 28px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+    h1 { font: 400 1.75rem/1.15 "Young Serif", Georgia, serif; margin: 0 0 6px; }
+    .sub { color: color-mix(in srgb, var(--neve) 75%, transparent); margin: 0 0 20px; font-size: .9375rem; }
+    form { display: grid; gap: 14px; }
+    label { font-weight: 600; font-size: .875rem; display: grid; gap: 6px; }
+    input, textarea { font: 500 1rem/1.3 "Figtree", sans-serif; color: var(--tinta); background: var(--neve);
+      border: 0; border-radius: 10px; padding: .75em .85em; width: 100%; }
+    textarea { resize: vertical; min-height: 4.5em; }
+    input:focus, textarea:focus { outline: 3px solid var(--luz); }
+    .linha2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .codigo { display: flex; gap: 8px; align-items: end; }
+    .codigo label { flex: 1; }
+    button { font: 700 .9375rem/1 "Figtree", sans-serif; cursor: pointer; border: 0; border-radius: 999px; padding: .95em 1.3em; }
+    .btn-sec { background: color-mix(in srgb, var(--neve) 14%, transparent); color: var(--neve); }
+    .acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+    .btn-pri { background: var(--azevinho); color: #fff; }
+    .btn-pri:hover { background: #962632; }
+    .aviso { font-size: .8125rem; color: color-mix(in srgb, var(--neve) 70%, transparent); margin: 4px 0 0; }
+    .aviso b { color: var(--luz); }
+    .previa { position: sticky; top: 16px; }
+    .previa canvas { width: 100%; height: auto; display: block; border-radius: 12px; box-shadow: 0 24px 60px -24px rgba(0,0,0,.8); }
+    .status { font-size: .8125rem; min-height: 1.4em; color: var(--luz); margin: 8px 0 0; }
+    @media (max-width: 760px) {
+      .pagina { grid-template-columns: 1fr; }
+      .previa { position: static; order: -1; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="pagina">
+    <section>
+      <h1>Cartão do Vale-Presente</h1>
+      <p class="sub">Preencha, confira o cartão e envie pelo WhatsApp para quem comprou.</p>
+      <form id="form" novalidate>
+        <label>Para (nome da pequena)
+          <input id="para" maxlength="24" placeholder="Ex.: Isadora" autocomplete="off">
+        </label>
+        <label>De (quem está presenteando)
+          <input id="de" maxlength="40" placeholder="Ex.: Dinda Carla" autocomplete="off">
+        </label>
+        <div class="linha2">
+          <label>Valor (R$)
+            <input id="valor" inputmode="decimal" placeholder="Ex.: 38" autocomplete="off">
+          </label>
+          <label>Válido até
+            <input id="validade" placeholder="31/03/2027" autocomplete="off">
+          </label>
+        </div>
+        <label><span>Mensagem <span style="font-weight:400">(opcional)</span></span>
+          <textarea id="mensagem" maxlength="140" placeholder="Ex.: Para a minha princesa escolher o laço mais lindo!"></textarea>
+        </label>
+        <div class="codigo">
+          <label>Código do vale
+            <input id="codigo" maxlength="14" autocomplete="off">
+          </label>
+          <button type="button" class="btn-sec" id="novo-codigo">Novo código</button>
+        </div>
+        <p class="aviso">Anote o <b>código</b>, o nome, o valor e a data na sua lista de vales. Quando a pequena vier
+          escolher, confira o código: só valem os vales da sua lista.</p>
+        <div class="acoes">
+          <button type="button" class="btn-pri" id="enviar">Enviar pelo WhatsApp</button>
+          <button type="button" class="btn-sec" id="baixar">Baixar imagem</button>
+        </div>
+        <p class="status" id="status" role="status"></p>
+      </form>
+    </section>
+    <section class="previa" aria-label="Prévia do cartão">
+      <canvas id="cartao" width="1080" height="1350"></canvas>
+    </section>
+  </main>
+
+  <script>
+    /* ---------- dados do formulário ---------- */
+    const $ = id => document.getElementById(id);
+    const campos = ["para", "de", "valor", "validade", "mensagem", "codigo"].map($);
+
+    function novoCodigo() {
+      const letras = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem 0/O e 1/I, que confundem
+      let s = ""; for (let i = 0; i < 4; i++) s += letras[Math.floor(Math.random() * letras.length)];
+      return "TNM-" + String(new Date().getFullYear()).slice(2) + "-" + s;
+    }
+    function validadePadrao() {
+      const hoje = new Date();
+      const ano = hoje.getMonth() >= 3 ? hoje.getFullYear() + 1 : hoje.getFullYear(); // de abril em diante, vale até março do ano seguinte
+      return "31/03/" + ano;
+    }
+    $("validade").value = validadePadrao();
+    $("codigo").value = novoCodigo();
+    $("novo-codigo").addEventListener("click", () => { $("codigo").value = novoCodigo(); desenhar(); });
+
+    function valorTexto() {
+      const n = Number($("valor").value.replace(/[^\d,.]/g, "").replace(",", "."));
+      return n > 0 ? n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "";
+    }
+
+    /* ---------- desenho do cartão (1080 × 1350) ---------- */
+    const cv = $("cartao"), ctx = cv.getContext("2d");
+    const W = 1080, H = 1350;
+    const COR = { noite: "#1C2A33", neve: "#F4F1EC", azevinho: "#B8323F", luz: "#F2C66D", tinta: "#3E2836", suave: "#76606D" };
+    const ilustra = new Image(), logo = new Image();
+    ilustra.src = "../img/natal/guarda-roupa.webp";
+    logo.src = "../img/marca/logo-boneca.png";
+
+    function quebrar(texto, larguraMax) {
+      const palavras = texto.split(/\s+/).filter(Boolean), linhas = [];
+      let atual = "";
+      for (const p of palavras) {
+        const teste = atual ? atual + " " + p : p;
+        if (ctx.measureText(teste).width > larguraMax && atual) { linhas.push(atual); atual = p; }
+        else atual = teste;
+      }
+      if (atual) linhas.push(atual);
+      return linhas;
+    }
+    function ajustarFonte(texto, peso, familia, tamMax, larguraMax) {
+      let t = tamMax;
+      do { ctx.font = `${peso} ${t}px ${familia}`; t -= 4; } while (ctx.measureText(texto).width > larguraMax && t > 40);
+    }
+
+    function desenhar() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = COR.noite; ctx.fillRect(0, 0, W, H);
+
+      /* ilustração no topo (recorte centrado na menina e no poste) */
+      const topoH = 560;
+      if (ilustra.complete && ilustra.naturalWidth) {
+        const esc = topoH / ilustra.naturalHeight * 1.0;
+        const larg = ilustra.naturalWidth * esc;
+        const x = (W - larg) / 2;
+        ctx.drawImage(ilustra, x, 0, larg, topoH);
+        const g = ctx.createLinearGradient(0, topoH - 200, 0, topoH);
+        g.addColorStop(0, "rgba(28,42,51,0)"); g.addColorStop(1, "rgba(28,42,51,1)");
+        ctx.fillStyle = g; ctx.fillRect(0, topoH - 200, W, 200);
+      }
+
+      /* painel creme com pesponto */
+      const px = 60, py = 470, pw = W - 120, ph = H - py - 60;
+      ctx.fillStyle = COR.neve;
+      ctx.beginPath(); ctx.roundRect(px, py, pw, ph, 28); ctx.fill();
+      ctx.save(); ctx.strokeStyle = "rgba(184,50,63,.5)"; ctx.lineWidth = 3; ctx.setLineDash([16, 12]);
+      ctx.beginPath(); ctx.roundRect(px + 18, py + 18, pw - 36, ph - 36, 18); ctx.stroke(); ctx.restore();
+
+      const cx = W / 2; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+      let y = py + 92;
+
+      ctx.fillStyle = COR.azevinho; ctx.font = '700 26px "Figtree", sans-serif';
+      ctx.letterSpacing = "6px"; ctx.fillText("VALE-PRESENTE TINENÉM", cx, y); ctx.letterSpacing = "0px";
+
+      y += 74; ctx.fillStyle = COR.suave; ctx.font = '700 44px "Dancing Script", cursive';
+      ctx.fillText("Era uma vez… um laço escolhido por", cx, y);
+
+      const para = $("para").value.trim() || "Nome da pequena";
+      y += 128; ctx.fillStyle = COR.azevinho; ajustarFonte(para, 700, '"Dancing Script", cursive', 132, pw - 120);
+      ctx.fillText(para, cx, y);
+
+      const de = $("de").value.trim();
+      if (de) { y += 84; ctx.fillStyle = COR.tinta; ctx.font = '600 36px "Figtree", sans-serif'; ctx.fillText("Com carinho, " + de, cx, y); }
+
+      const valor = valorTexto();
+      if (valor) {
+        y += 104; ctx.fillStyle = COR.tinta; ajustarFonte(valor, 400, '"Young Serif", serif', 92, pw - 160);
+        ctx.fillText(valor, cx, y);
+      }
+
+      const msg = $("mensagem").value.trim();
+      if (msg) {
+        y += 70; ctx.fillStyle = COR.suave; ctx.font = 'italic 400 32px "Figtree", sans-serif';
+        const linhas = quebrar("“" + msg + "”", pw - 160).slice(0, 3);
+        for (const l of linhas) { ctx.fillText(l, cx, y); y += 44; }
+        y -= 44;
+      }
+
+      /* rodapé do painel: validade, código e marca */
+      const base = py + ph - 64;
+      ctx.fillStyle = COR.tinta; ctx.font = '600 28px "Figtree", sans-serif';
+      ctx.fillText("Válido até " + ($("validade").value.trim() || "—") + "  ·  Código " + ($("codigo").value.trim() || "—"), cx, base - 74);
+      if (logo.complete && logo.naturalWidth) ctx.drawImage(logo, cx - 210, base - 42, 56, 56);
+      ctx.fillStyle = COR.tinta; ctx.font = '400 34px "Young Serif", serif'; ctx.textAlign = "left";
+      ctx.fillText("Tineném Laços", cx - 140, base); ctx.textAlign = "center";
+      ctx.fillStyle = COR.suave; ctx.font = '500 24px "Figtree", sans-serif';
+      ctx.fillText("@tinenemlacos · (91) 98566-3741", cx, base + 34);
+    }
+
+    campos.forEach(c => c.addEventListener("input", desenhar));
+    ilustra.onload = logo.onload = desenhar;
+    document.fonts.ready.then(desenhar);
+    Promise.all(['700 40px "Dancing Script"', '400 40px "Young Serif"', '600 20px "Figtree"'].map(f => document.fonts.load(f))).then(desenhar);
+    desenhar();
+
+    /* ---------- enviar / baixar ---------- */
+    const status = t => { $("status").textContent = t; };
+    function nomeArquivo() {
+      const n = ($("para").value.trim() || "vale").normalize("NFD").replace(/[^\w]+/g, "-").toLowerCase();
+      return `vale-tinenem-${n}-${$("codigo").value.trim()}.png`;
+    }
+    function gerarArquivo() {
+      desenhar();
+      return new Promise(res => cv.toBlob(b => res(new File([b], nomeArquivo(), { type: "image/png" })), "image/png"));
+    }
+    function baixar(arquivo) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(arquivo); a.download = arquivo.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+    $("baixar").addEventListener("click", async () => {
+      baixar(await gerarArquivo()); status("Imagem salva. Agora é só enviar no WhatsApp.");
+    });
+    $("enviar").addEventListener("click", async () => {
+      const arquivo = await gerarArquivo();
+      if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+        try {
+          await navigator.share({ files: [arquivo], title: "Vale-Presente Tineném" });
+          status("Pronto! Lembre de anotar o código " + $("codigo").value.trim() + " na sua lista.");
+        } catch (e) { if (e.name !== "AbortError") { baixar(arquivo); status("Não deu para abrir o WhatsApp direto: a imagem foi salva, envie pela galeria."); } }
+      } else {
+        baixar(arquivo);
+        status("Este navegador não envia direto: a imagem foi salva, envie pelo WhatsApp a partir da galeria.");
+      }
+    });
+  </script>
+</body>
+
+</html>

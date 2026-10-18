@@ -44,3 +44,41 @@ const produtos = [
   { nome: "Dupla Bela", tam: "TM P", cat: ["kit"], img: "bela-dupla-p.webp", preco: 28,
     desc: "Par de laços off-white com rosinha laranja e folhas bordadas." },
 ];
+
+/* ============================================================
+   COLEÇÃO DE NATAL: "Do outro lado do guarda-roupa"
+   ativo: true mostra a faixa no topo e a seção de Natal; false esconde tudo.
+   prazo: último dia para pedir e receber antes do Natal (10 dias úteis de produção).
+   Os produtos abaixo são IDEIAS com fotos provisórias: troque img, desc e
+   preco quando a Irlem tiver os laços de Natal prontos e fotografados.
+   ============================================================ */
+const NATAL = {
+  ativo: false,
+  prazo: "08/12",
+  /* vagas: quantos pedidos de Natal a Irlem ainda consegue fazer até o dia 24.
+     Atualize sempre que ela fechar um pedido. 5 ou menos = "Últimas vagas!";
+     0 = "esgotadas" (botões viram lista de espera); null = não mostra vagas.
+     ⚠️ 15 é provisório: confirmar com a Irlem. */
+  vagas: 15,
+  /* vale-presente (cartão digital, enviado pelo WhatsApp): aparece na seção de Natal;
+     depois do prazo vira o destaque da faixa. Confirmado com a Irlem em 18/10/2026.
+     valores: em reais, com uma dica do que dá para escolher (alinhados aos preços do catálogo).
+     validade: até quando a criança pode escolher o laço. */
+  vale: {
+    ativo: true,
+    validade: "31/03",
+    valores: [
+      { valor: 28, dica: "um laço" },
+      { valor: 38, dica: "laço especial ou dupla" },
+      { valor: 68, dica: "um kit" },
+    ],
+  },
+  produtos: [
+    { nome: "Laço Poste de Luz", tam: "TM M", img: "aurora-gg.webp", provisoria: true,
+      desc: "Vermelho com um poste de luz aceso e flocos de neve bordados." },
+    { nome: "Laço Azevinho", tam: "TM P", img: "bela-dupla-p.webp", provisoria: true,
+      desc: "Creme com galhinhos de azevinho e frutinhas vermelhas." },
+    { nome: "Laço Bosque de Neve", tam: "Tam. único", img: "celina.webp", provisoria: true,
+      desc: "Branco com pinheirinhos, estrela dourada e um passarinho de inverno." },
+  ],
+};

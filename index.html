@@ -58,6 +58,11 @@
 
 <body>
 
+  <!-- Faixa de Natal: liga/desliga em js/dados.js (NATAL.ativo) -->
+  <a class="faixa-natal" id="faixa-natal" href="#natal" hidden>
+    <span aria-hidden="true">❄</span> <span class="faixa-longo">Coleção de Natal · <em>Do outro lado do guarda-roupa</em> · </span><span class="faixa-curto">Natal: </span><span id="faixa-prazo">pedidos até <b class="js-natal-prazo">08/12</b></span><span class="js-vagas-faixa" hidden></span>
+  </a>
+
   <header class="topo">
     <div class="wrap">
       <a class="marca" href="#inicio"><img src="img/marca/logo-boneca.png" alt="" width="40" height="40"><b>Tineném Laços & Acessórios</b></a>
@@ -112,23 +117,110 @@
 
     <svg class="costura costura-larga" viewBox="0 0 1120 70" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0,40 C160,0 320,70 520,30 S880,10 1120,40" />
-      <g class="abelha">
+      <g class="abelha inseto">
         <ellipse cx="0" cy="0" rx="9" ry="6.5" fill="#F2C94C" />
         <path d="M-3,-6 v12 M2,-6 v12" stroke="#3E2836" stroke-width="2" />
         <ellipse cx="-2" cy="-9" rx="5" ry="4" fill="#FFFFFF" stroke="#3E2836" stroke-width=".8" opacity=".9" />
         <ellipse cx="3" cy="-9" rx="5" ry="4" fill="#FFFFFF" stroke="#3E2836" stroke-width=".8" opacity=".9" />
+      </g>
+      <!-- passarinho de inverno: aparece no lugar da abelha no modo Natal -->
+      <g class="abelha passaro">
+        <path d="M-9,-1 L-17,-5 L-16,2 Z" fill="#5E3F2A" />
+        <ellipse cx="0" cy="0" rx="10" ry="7" fill="#7A5236" />
+        <ellipse cx="4" cy="2" rx="5.5" ry="4.5" fill="#D2453A" />
+        <ellipse cx="-2" cy="-1" rx="5" ry="3.5" fill="#5E3F2A" />
+        <circle cx="8" cy="-5" r="4.5" fill="#7A5236" />
+        <circle cx="9.5" cy="-6" r="1" fill="#1C2A33" />
+        <path d="M12.3,-5.5 L15.5,-4.6 L12.3,-3.6 Z" fill="#E59A3A" />
       </g>
     </svg>
     <!-- versão para celular: desenhada no formato da tela estreita, mantém a proporção e a abelha não achata -->
     <svg class="costura costura-celular" viewBox="0 0 400 70" aria-hidden="true">
       <path d="M0,42 C60,12 120,62 200,34 S330,18 400,40" />
-      <g class="abelha abelha-celular">
+      <g class="abelha abelha-celular inseto">
         <ellipse cx="0" cy="0" rx="9" ry="6.5" fill="#F2C94C" />
         <path d="M-3,-6 v12 M2,-6 v12" stroke="#3E2836" stroke-width="2" />
         <ellipse cx="-2" cy="-9" rx="5" ry="4" fill="#FFFFFF" stroke="#3E2836" stroke-width=".8" opacity=".9" />
         <ellipse cx="3" cy="-9" rx="5" ry="4" fill="#FFFFFF" stroke="#3E2836" stroke-width=".8" opacity=".9" />
       </g>
+      <!-- passarinho de inverno: aparece no lugar da abelha no modo Natal -->
+      <g class="abelha abelha-celular passaro">
+        <path d="M-9,-1 L-17,-5 L-16,2 Z" fill="#5E3F2A" />
+        <ellipse cx="0" cy="0" rx="10" ry="7" fill="#7A5236" />
+        <ellipse cx="4" cy="2" rx="5.5" ry="4.5" fill="#D2453A" />
+        <ellipse cx="-2" cy="-1" rx="5" ry="3.5" fill="#5E3F2A" />
+        <circle cx="8" cy="-5" r="4.5" fill="#7A5236" />
+        <circle cx="9.5" cy="-6" r="1" fill="#1C2A33" />
+        <path d="M12.3,-5.5 L15.5,-4.6 L12.3,-3.6 Z" fill="#E59A3A" />
+      </g>
     </svg>
+
+    <!-- Coleção de Natal: liga/desliga em js/dados.js (NATAL.ativo) -->
+    <section id="natal" class="natal" hidden>
+      <canvas class="neve" aria-hidden="true"></canvas>
+
+      <div class="wrap natal-wrap">
+        <figure class="natal-ilustra">
+          <!-- vídeo feito no Gemini: as portas do guarda-roupa abrem para o bosque de neve.
+               Toca uma vez, mudo, quando a seção aparece na tela; para no quadro do poste de luz. -->
+          <video id="natal-video" muted playsinline preload="none" width="540" height="960"
+            poster="img/natal/guarda-roupa-inicio.webp"
+            aria-label="Animação em aquarela: as portas de um guarda-roupa com um laço vermelho se abrem para um bosque de neve com um poste de luz aceso">
+            <source src="img/natal/guarda-roupa.mp4" type="video/mp4">
+          </video>
+          <button type="button" class="natal-replay" id="natal-replay" hidden>↻ Abrir de novo</button>
+        </figure>
+
+        <div class="natal-texto">
+          <span class="olho">Coleção de Natal</span>
+          <h2>Do outro lado do guarda-roupa</h2>
+          <p class="natal-frase">“Do outro lado do guarda-roupa, sempre é Natal.”</p>
+          <p>Laços bordados com postes de luz na neve, pinheirinhos, azevinho e passarinhos de inverno.
+            Cada um chega numa cartela de “Era uma vez…”, pronto para presentear.</p>
+          <p class="natal-prazo" id="natal-prazo">❄ Pedidos de Natal até <b class="js-natal-prazo">08/12</b> para receber antes do dia 24.</p>
+          <p class="vagas-natal" id="vagas-natal" hidden></p>
+        </div>
+      </div>
+
+      <div class="wrap">
+        <div class="natal-grade" id="natal-grade"></div>
+      </div>
+
+      <!-- Vale-presente (configurado em js/dados.js → NATAL.vale) -->
+      <div class="wrap">
+        <div class="vale" id="vale-presente">
+          <div class="vale-texto">
+            <span class="olho">Vale-Presente Tineném</span>
+            <h3>Não sabe o tamanho, o nome ou a cor?</h3>
+            <p class="vale-frase">“Era uma vez… um laço escolhido por ela.”</p>
+            <p>A Irlem envia um <b>cartão digital</b> pelo WhatsApp, com o nome da pequena e a sua mensagem,
+              para você encaminhar ou mostrar no Natal. Depois, ela escolhe o laço com a Irlem até
+              <b class="js-vale-validade">31/03</b>.</p>
+            <p>Pagamento por Pix ou dinheiro. Se o laço escolhido custar mais, é só completar a diferença.</p>
+          </div>
+          <form class="vale-form" id="form-vale" novalidate>
+            <fieldset class="campo">
+              <legend>Valor do vale</legend>
+              <div class="vale-valores" id="vale-valores" role="group" aria-label="Valor do vale"></div>
+              <input type="text" id="vale-outro" inputmode="numeric" placeholder="Outro valor (R$)" autocomplete="off" hidden>
+            </fieldset>
+            <div class="campo">
+              <label for="vale-para">Para quem é</label>
+              <input type="text" id="vale-para" maxlength="30" placeholder="Ex.: Isadora" autocomplete="off">
+            </div>
+            <div class="campo">
+              <label for="vale-de">De quem</label>
+              <input type="text" id="vale-de" maxlength="40" placeholder="Ex.: Dinda Carla" autocomplete="off">
+            </div>
+            <div class="campo">
+              <label for="vale-msg">Mensagem do cartão <span class="opcional">(opcional)</span></label>
+              <textarea id="vale-msg" rows="2" maxlength="160" placeholder="Ex.: Para a minha princesa escolher o laço mais lindo!"></textarea>
+            </div>
+            <a class="btn btn-cheio" id="pedir-vale" href="#" target="_blank" rel="noopener">Pedir vale pelo WhatsApp</a>
+          </form>
+        </div>
+      </div>
+    </section>
 
     <section id="catalogo">
       <div class="wrap">
